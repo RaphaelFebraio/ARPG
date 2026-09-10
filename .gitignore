@@ -1,9 +1,35 @@
+# Dependencies
 node_modules/
+
+# Build outputs
 dist/
 build/
+.expo/
+.turbo/
+
+# Env
 .env
 .env.local
+
+# Logs
 *.log
+npm-debug.log*
+
+# OS / editor
 .DS_Store
 .vscode/
 .idea/
+
+# Local storage (audio, PDFs, whisper models)
+data/audio/*
+data/pdf/*
+!data/audio/.gitkeep
+!data/pdf/.gitkeep
+models/*
+!models/.gitkeep
+
+# Drizzle
+server/drizzle/
+
+# TypeScript
+*.tsbuildinfo
