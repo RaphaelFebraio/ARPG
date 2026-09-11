@@ -59,11 +59,25 @@ Redis, espera o Postgres ficar saudável e então sobe o servidor com
 
 - [x] Fase 1 — Fundação (monorepo, Docker, Fastify + health check, shared, Drizzle schema)
 - [x] Fase 2 — RAG Pipeline (ver [docs/RAG-PIPELINE.md](RAG-PIPELINE.md))
-- [ ] Fase 3 — App Mobile (shell)
+- [x] Fase 3 — App Mobile (shell)
 - [ ] Fase 4 — Criação de Personagem
 - [ ] Fase 5 — Chat de Regras
 - [ ] Fase 6 — Diário de Campanha
 - [ ] Fase 7 — Polish
+
+## Notas do app mobile
+
+`apps/mobile` é um projeto Expo (SDK 57) com Expo Router, NativeWind e os 4
+tabs do produto (criar, grimório, diário, personagens) — por enquanto só
+telas placeholder; a lógica de cada uma chega nas Fases 4-6.
+
+`package.json` do mobile exclui `react` e `react-dom` do
+`expo install --fix` de propósito: o tooling web do `expo-router` (via
+`@expo/ui`/radix-ui) puxa `19.3.0` de ambos, fora da versão exata que o
+SDK 57 recomenda (`19.2.3`) mas dentro do range aceito pelo `react-native`
+(`^19.2.3`). Deixar o npm resolver tudo pra `19.3.0` evita uma cópia
+duplicada real no bundle (que o `expo-doctor` trata como erro de build),
+trocando isso por um aviso de compatibilidade inofensivo.
 
 ## Migração futura para VPS
 
