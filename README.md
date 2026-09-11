@@ -19,10 +19,17 @@ Ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) para detalhes.
 Pré-requisitos: Docker Desktop (WSL2), [Ollama](https://ollama.com), Node.js
 ≥ 20, ffmpeg, binário whisper.cpp em `./bin/`.
 
+Primeira vez (baixa modelos Ollama/whisper e faz a ingestão do SRD):
+
 ```bash
 cp .env.example .env
 bash scripts/setup.sh
-npm run dev
+```
+
+Dia a dia (sobe Docker Desktop se preciso, Postgres + Redis, e o servidor):
+
+```bash
+bash scripts/dev-up.sh
 ```
 
 ## Estrutura

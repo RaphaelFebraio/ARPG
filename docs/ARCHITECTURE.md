@@ -43,13 +43,17 @@ binário whisper.cpp em `./bin/`.
 ```bash
 cp .env.example .env
 bash scripts/setup.sh
-npm run dev
 ```
 
 O script `scripts/setup.sh` sobe o Docker Compose, baixa os modelos do Ollama,
 baixa o modelo whisper.cpp, instala as dependências, aplica o schema do banco
 (Drizzle) e roda a ingestão do SRD 5.1 se o PDF estiver presente em
-`./data/pdf`.
+`./data/pdf`. Rodar apenas na primeira vez (ou quando os modelos mudarem).
+
+No dia a dia, usar `bash scripts/dev-up.sh`: garante que o Docker Desktop está
+rodando (inicia se preciso, espera o engine ficar pronto), sobe Postgres +
+Redis, espera o Postgres ficar saudável e então sobe o servidor com
+`npm run dev`.
 
 ## Status de implementação
 
