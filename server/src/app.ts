@@ -3,6 +3,7 @@ import fastify, { type FastifyInstance } from 'fastify';
 import { config } from './config.js';
 import { registerErrorHandler } from './plugins/error-handler.js';
 import { healthRoutes } from './routes/health.js';
+import { rulesRoutes } from './routes/rules.js';
 
 export const buildApp = async (): Promise<FastifyInstance> => {
   const app = fastify({
@@ -16,6 +17,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
   registerErrorHandler(app);
 
   await app.register(healthRoutes);
+  await app.register(rulesRoutes);
 
   return app;
 };

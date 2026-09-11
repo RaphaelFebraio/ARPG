@@ -19,6 +19,12 @@ const envSchema = z.object({
   OLLAMA_BASE_URL: z.string().url().default('http://localhost:11434'),
   OLLAMA_MODEL: z.string().default('llama3.1:8b'),
   OLLAMA_EMBED_MODEL: z.string().default('nomic-embed-text'),
+  // DECISION: Ollama defaults to a 2048-token context window regardless of
+  // the model's real limit. A RAG system prompt with 5 chunks routinely
+  // exceeds that (measured ~1700 tokens of context alone for a spell
+  // query), silently truncating the prompt and causing the model to
+  // hallucinate instead of reading the actual retrieved rules.
+  OLLAMA_NUM_CTX: z.coerce.number().int().positive().default(4096),
 
   WHISPER_CPP_PATH: z.string().default('./bin/whisper-cpp'),
   WHISPER_MODEL_PATH: z.string().default('./models/ggml-base.bin'),
@@ -31,7 +37,12 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
 
-  RAG_SIMILARITY_THRESHOLD: z.coerce.number().min(0).max(1).default(0.72),
+  // DECISION: the spec's 0.72 default was tuned for a cloud embedding
+  // model (Gemini). Empirically calibrated against nomic-embed-text
+  // (post query-translation, see rag.service.ts), relevant matches score
+  // ~0.65-0.85 and off-topic queries top out ~0.45-0.5, so 0.55 separates
+  // them with margin on both sides.
+  RAG_SIMILARITY_THRESHOLD: z.coerce.number().min(0).max(1).default(0.55),
   RAG_MAX_CHUNKS: z.coerce.number().int().positive().default(5),
 
   GEMINI_API_KEY: z.string().optional(),

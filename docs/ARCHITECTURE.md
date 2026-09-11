@@ -58,7 +58,7 @@ Redis, espera o Postgres ficar saudável e então sobe o servidor com
 ## Status de implementação
 
 - [x] Fase 1 — Fundação (monorepo, Docker, Fastify + health check, shared, Drizzle schema)
-- [ ] Fase 2 — RAG Pipeline
+- [x] Fase 2 — RAG Pipeline (ver [docs/RAG-PIPELINE.md](RAG-PIPELINE.md))
 - [ ] Fase 3 — App Mobile (shell)
 - [ ] Fase 4 — Criação de Personagem
 - [ ] Fase 5 — Chat de Regras

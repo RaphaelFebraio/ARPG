@@ -11,7 +11,12 @@ Todas as respostas seguem o envelope:
 
 ```
 GET    /health                               → Status do servidor e do banco
+POST   /rules/query            { query: string, filters?: { entityType?: string } }
+                               → { answer: string, sources: ChunkMetadata[] }
 ```
+
+Ingestão do SRD por enquanto é só via CLI (`npm run ingest`), não HTTP —
+ver [docs/RAG-PIPELINE.md](RAG-PIPELINE.md).
 
 ## Planejado (por fase)
 
@@ -29,12 +34,6 @@ POST   /characters                           → Cria personagem
 GET    /characters/:id                       → Detalhe de um personagem
 PUT    /characters/:id                       → Atualiza personagem
 DELETE /characters/:id                       → Deleta personagem
-```
-
-### Regras — RAG (Fase 2/5)
-```
-POST   /rules/query            { query: string, filters?: { entityType?: string } }
-                               → { answer: string, sources: ChunkMetadata[] }
 ```
 
 ### Diário de campanha (Fase 6)

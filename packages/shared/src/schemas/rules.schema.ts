@@ -1,14 +1,17 @@
 import { z } from 'zod';
-import { ENTITY_TYPES } from '../constants/rag';
+import { ENTITY_TYPES } from '../constants/rag.js';
 
+// DECISION: chapter/section are optional — the SRD 5.1 CC text has no
+// reliable chapter markers to extract, only entity-level headings, so the
+// chunker leaves these null rather than guessing.
 export const chunkMetadataSchema = z.object({
   source: z.string(),
-  chapter: z.string(),
-  section: z.string(),
+  chapter: z.string().nullable().optional(),
+  section: z.string().nullable().optional(),
   entityType: z.enum(ENTITY_TYPES),
   entityName: z.string(),
-  pageStart: z.number().int().optional(),
-  pageEnd: z.number().int().optional(),
+  pageStart: z.number().int().nullable().optional(),
+  pageEnd: z.number().int().nullable().optional(),
 });
 
 export const rulesQuerySchema = z.object({

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { rulesQuerySchema } from './rules.schema';
+import { rulesQuerySchema } from './rules.schema.js';
 
 describe('rulesQuerySchema', () => {
   it('accepts a plain query without filters', () => {

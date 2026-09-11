@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SKILLS } from '../constants/skills';
+import { SKILLS } from '../constants/skills.js';
 
 export const abilityScoreValueSchema = z.number().int().min(1).max(30);
 

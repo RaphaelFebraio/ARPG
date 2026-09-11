@@ -1,9 +1,9 @@
-export * from './constants/abilities';
-export * from './constants/skills';
-export * from './constants/rag';
+export * from './constants/abilities.js';
+export * from './constants/skills.js';
+export * from './constants/rag.js';
 
-export * from './schemas/character.schema';
-export * from './schemas/rules.schema';
-export * from './schemas/campaign.schema';
+export * from './schemas/character.schema.js';
+export * from './schemas/rules.schema.js';
+export * from './schemas/campaign.schema.js';
 
-export * from './types/api';
+export * from './types/api.js';

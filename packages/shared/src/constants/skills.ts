@@ -1,4 +1,4 @@
-import type { AbilityScore } from './abilities';
+import type { AbilityScore } from './abilities.js';
 
 export const SKILLS = [
   'acrobatics',

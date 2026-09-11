@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createCharacterSchema } from './character.schema';
+import { createCharacterSchema } from './character.schema.js';
 
 const validInput = {
   name: 'Aria Nightsong',
