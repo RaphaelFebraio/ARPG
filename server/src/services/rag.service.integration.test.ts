@@ -24,6 +24,13 @@ describe('RagService (integration)', () => {
 
       expect(result.answer.toLowerCase()).toContain('8d6');
       expect(result.sources.some((s) => s.entityName === 'Fireball' && s.entityType === 'spell')).toBe(true);
+
+      // Regression: the prompt's rule about citing sources used to give
+      // "[PHB, Cap. 3 — Classes]" as a literal example, and the model
+      // copied that fake citation verbatim instead of the real "[SRD 5.1]"
+      // tag actually present in the context — a subtle but real instance
+      // of inventing source info. None of our chunks are ever tagged PHB.
+      expect(result.answer).not.toContain('PHB');
     },
     TEST_TIMEOUT_MS,
   );

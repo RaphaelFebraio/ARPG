@@ -1,4 +1,4 @@
-import type { ApiResponse, Character, CreateCharacterInput } from '@grimoire/shared';
+import type { ApiResponse, Character, CreateCharacterInput, RulesAnswer, RulesQueryInput } from '@grimoire/shared';
 
 // DECISION: EXPO_PUBLIC_-prefixed env vars are inlined by Expo at build
 // time and readable from client code (see Expo docs on environment
@@ -39,4 +39,9 @@ export const charactersApi = {
   getById: (id: string): Promise<Character> => request<Character>(`/characters/${id}`),
 
   delete: (id: string): Promise<void> => request<void>(`/characters/${id}`, { method: 'DELETE' }),
+};
+
+export const rulesApi = {
+  query: (input: RulesQueryInput): Promise<RulesAnswer> =>
+    request<RulesAnswer>('/rules/query', { method: 'POST', body: JSON.stringify(input) }),
 };

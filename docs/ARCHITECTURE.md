@@ -61,7 +61,7 @@ Redis, espera o Postgres ficar saudável e então sobe o servidor com
 - [x] Fase 2 — RAG Pipeline (ver [docs/RAG-PIPELINE.md](RAG-PIPELINE.md))
 - [x] Fase 3 — App Mobile (shell)
 - [x] Fase 4 — Criação de Personagem
-- [ ] Fase 5 — Chat de Regras
+- [x] Fase 5 — Chat de Regras
 - [ ] Fase 6 — Diário de Campanha
 - [ ] Fase 7 — Polish
 
@@ -118,6 +118,23 @@ até a autenticação de verdade existir.
 
 Também corrigidos três bugs no chunker do RAG (Fase 2) descobertos ao
 extrair esses dados — ver [docs/RAG-PIPELINE.md](RAG-PIPELINE.md).
+
+## Chat de regras (Fase 5)
+
+UI de chat em `apps/mobile/app/(tabs)/grimoire/index.tsx` (Zustand store em
+`stores/useChatStore.ts`, componentes em `components/chat/`), consumindo o
+`/rules/query` da Fase 2 direto. "Formatação rica" (spec Fase 5) é um
+parser leve em `ChatBubble.tsx` que deixa em negrito dourado qualquer linha
+`Rótulo: valor` — cobre o formato que o próprio prompt já pede pra
+magias/monstros, sem precisar de uma lib de markdown.
+
+Achado testando de ponta a ponta: a regra 4 do `RULES_ASSISTANT_SYSTEM_PROMPT`
+dava `[PHB, Cap. 3 — Classes]` como exemplo literal de citação, e o modelo
+copiava essa citação FALSA (nenhum chunk nosso é do PHB, nem tem número de
+capítulo) em vez de usar o `[SRD 5.1]` real do contexto — inventar uma
+fonte é exatamente o que a "regra inegociável" existe pra evitar. Corrigido
+pra instruir o modelo a copiar a tag exata que aparece no contexto, com
+teste de regressão em `rag.service.integration.test.ts`.
 
 ## Migração futura para VPS
 
