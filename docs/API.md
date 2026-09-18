@@ -13,10 +13,16 @@ Todas as respostas seguem o envelope:
 GET    /health                               → Status do servidor e do banco
 POST   /rules/query            { query: string, filters?: { entityType?: string } }
                                → { answer: string, sources: ChunkMetadata[] }
+GET    /characters                           → Lista personagens do user
+POST   /characters                           → Cria personagem
+GET    /characters/:id                       → Detalhe de um personagem
+PUT    /characters/:id                       → Atualiza personagem (parcial)
+DELETE /characters/:id                       → Deleta personagem
 ```
 
 Ingestão do SRD por enquanto é só via CLI (`npm run ingest`), não HTTP —
-ver [docs/RAG-PIPELINE.md](RAG-PIPELINE.md).
+ver [docs/RAG-PIPELINE.md](RAG-PIPELINE.md). Personagens ainda não têm
+autenticação real — pertencem a um "dev user" único até a Fase 7.
 
 ## Planejado (por fase)
 
@@ -25,15 +31,6 @@ ver [docs/RAG-PIPELINE.md](RAG-PIPELINE.md).
 POST   /auth/register          { email, password }
 POST   /auth/login             { email, password } → { accessToken, refreshToken }
 POST   /auth/refresh           { refreshToken }    → { accessToken }
-```
-
-### Personagens (Fase 4)
-```
-GET    /characters                           → Lista personagens do user
-POST   /characters                           → Cria personagem
-GET    /characters/:id                       → Detalhe de um personagem
-PUT    /characters/:id                       → Atualiza personagem
-DELETE /characters/:id                       → Deleta personagem
 ```
 
 ### Diário de campanha (Fase 6)

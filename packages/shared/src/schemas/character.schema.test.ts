@@ -1,5 +1,6 @@
+import { zodToJsonSchema } from 'zod-to-json-schema';
 import { describe, expect, it } from 'vitest';
-import { createCharacterSchema } from './character.schema.js';
+import { createCharacterSchema, updateCharacterSchema } from './character.schema.js';
 
 const validInput = {
   name: 'Aria Nightsong',
@@ -35,5 +36,30 @@ describe('createCharacterSchema', () => {
     const result = createCharacterSchema.safeParse(withoutName);
 
     expect(result.success).toBe(false);
+  });
+});
+
+describe('updateCharacterSchema', () => {
+  it('parses a partial payload without filling in unset fields', () => {
+    const result = updateCharacterSchema.parse({ level: 2 });
+
+    expect(result).toEqual({ level: 2 });
+  });
+
+  // Regression: updateCharacterSchema used to be createCharacterSchema.partial(),
+  // which keeps each field's inner `.default(...)`. Fastify's AJV validator has
+  // `useDefaults` on, so it filled those defaults into every PUT request
+  // regardless of what the caller sent — a PUT with only `{ level: 2 }` would
+  // silently wipe `skills`/`equipment`/etc. back to `[]`. The JSON Schema this
+  // schema converts to (what AJV actually validates against) must not carry a
+  // `default` keyword on any field.
+  it('produces a JSON Schema with no default keywords, so AJV cannot inject them', () => {
+    const jsonSchema = zodToJsonSchema(updateCharacterSchema, { $refStrategy: 'none' }) as {
+      properties: Record<string, { default?: unknown }>;
+    };
+
+    for (const [field, fieldSchema] of Object.entries(jsonSchema.properties)) {
+      expect(fieldSchema, `field "${field}" should not have a default`).not.toHaveProperty('default');
+    }
   });
 });

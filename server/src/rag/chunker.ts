@@ -25,6 +25,13 @@ const isTitleCaseLine = (line: string): boolean => {
   if (words.length === 0) return false;
 
   return words.every((word, index) => {
+    // DECISION: hyphenated names ("Half-Elf") sometimes extract as a
+    // standalone "-" token surrounded by spaces ("Half - Elf") because the
+    // hyphen is its own text item in the PDF. A lone hyphen isn't a real
+    // word, so it shouldn't fail the Title Case check — without this,
+    // "Half - Elf" and "Half - Orc" silently fail heading detection and
+    // their entire race entry gets swallowed into the previous chunk.
+    if (word === '-') return true;
     if (index > 0 && STOPWORDS.has(word.toLowerCase())) return true;
     const firstChar = word[0] ?? '';
     return /[A-Z]/.test(firstChar);
@@ -55,7 +62,10 @@ const isAllCapsAbbreviationRow = (line: string): boolean => {
 // only by capitalized language names — pass by coincidence and truncate
 // the monster's block right there. These are the fixed, well-known 5e
 // stat-block field names (not copyrighted flavor text), so a denylist on
-// the line's leading word(s) is safe to hardcode.
+// the line's leading word(s) is safe to hardcode. Only matched when the
+// value trails on the SAME line (`startsWith(prefix + ' ')`) — a class
+// description also has a bare "Hit Points" section heading with its value
+// on the next line, which must stay a valid heading.
 const STAT_BLOCK_LABEL_PREFIXES = [
   'Armor Class',
   'Hit Points',
@@ -71,7 +81,7 @@ const STAT_BLOCK_LABEL_PREFIXES = [
   'Challenge',
 ];
 const isStatBlockLabelLine = (line: string): boolean =>
-  STAT_BLOCK_LABEL_PREFIXES.some((prefix) => line === prefix || line.startsWith(`${prefix} `));
+  STAT_BLOCK_LABEL_PREFIXES.some((prefix) => line.startsWith(`${prefix} `));
 
 // DECISION: without font-size/layout info (pdf-parse only gives us a flat
 // text stream), the best signal that a line is a heading — a spell name, a
@@ -80,7 +90,31 @@ const isStatBlockLabelLine = (line: string): boolean =>
 // capitalized (Title Case). Run-in bolded labels like "Ability Score
 // Increase. Your Wisdom score..." are excluded because they end in
 // sentence punctuation, so they stay folded into the surrounding chunk.
-const isHeadingLine = (line: Line): boolean =>
+// DECISION: a comma-separated list of proper nouns (skill names, languages,
+// tool proficiencies — "Animal Handling, Athletics,\nIntimidation, Nature,
+// ...") is itself Title Case and wraps across PDF line boundaries, so a
+// continuation line reads exactly like a heading. Requiring the previous
+// line NOT end in a comma catches this: real headings never follow a
+// mid-list comma, only body text does. Without this, proficiency/skill
+// lists silently truncate at the first line wrap.
+//
+// DECISION: the wrap doesn't always land right after a comma — a list can
+// also break mid-phrase ("...Sleight of" / "Hand, and Stealth") or right
+// after a dangling conjunction ("...Nature, and" / "Religion"). Any of
+// these trailing connector words on the previous line is just as strong a
+// signal as a trailing comma that the next line continues the same list
+// rather than starting a new heading.
+const DANGLING_CONNECTORS = new Set(['and', 'or', 'of', 'the', 'a', 'an', 'to', 'in', 'on', 'for', 'with']);
+
+const endsWithListContinuationCue = (previousLineText: string | null): boolean => {
+  if (!previousLineText) return false;
+  if (previousLineText.endsWith(',')) return true;
+  const words = previousLineText.split(' ');
+  const lastWord = words[words.length - 1]?.toLowerCase() ?? '';
+  return DANGLING_CONNECTORS.has(lastWord);
+};
+
+const isHeadingLine = (line: Line, previousLineText: string | null): boolean =>
   line.text.length > 0 &&
   line.text.length <= HEADING_MAX_LENGTH &&
   !SENTENCE_END.test(line.text) &&
@@ -88,6 +122,7 @@ const isHeadingLine = (line: Line): boolean =>
   !containsColon(line.text) &&
   !isAllCapsAbbreviationRow(line.text) &&
   !isStatBlockLabelLine(line.text) &&
+  !endsWithListContinuationCue(previousLineText) &&
   isTitleCaseLine(line.text);
 
 const SPELL_LEVEL_LINE = /^(?:cantrip|[1-9](?:st|nd|rd|th)\s*-?\s*level)\b/i;
@@ -117,11 +152,13 @@ type Block = {
 const splitIntoHeadingBlocks = (lines: Line[]): Block[] => {
   const blocks: Block[] = [];
   let current: Block | null = null;
+  let previousLineText: string | null = null;
 
   for (const line of lines) {
-    if (isHeadingLine(line)) {
+    if (isHeadingLine(line, previousLineText)) {
       if (current) blocks.push(current);
       current = { heading: line.text, lines: [line] };
+      previousLineText = line.text;
       continue;
     }
 
@@ -130,6 +167,7 @@ const splitIntoHeadingBlocks = (lines: Line[]): Block[] => {
       current = { heading: 'Introduction', lines: [] };
     }
     current.lines.push(line);
+    previousLineText = line.text;
   }
 
   if (current) blocks.push(current);

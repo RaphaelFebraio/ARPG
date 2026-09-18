@@ -39,6 +39,30 @@ monstros no meio do stat block.
 no texto extraído, só títulos de entidade, então preenchê-los seria
 adivinhação.
 
+### Bugs de chunking encontrados extraindo dados pra Fase 4
+
+Todos em `server/src/rag/chunker.ts`, cobertos por `chunker.test.ts`:
+
+1. **Nomes hifenizados** ("Half-Elf") às vezes extraem como "Half - Elf"
+   (o hífen vira um token isolado); um "-" sozinho falhava o teste de Title
+   Case e engolia a raça inteira no chunk anterior. Corrigido tratando "-"
+   como sempre válido no teste de Title Case.
+2. **Listas em Title Case que quebram entre linhas** ("Skills: Choose two
+   from Animal Handling, Athletics," seguido de "Intimidation, Nature, ...")
+   liam como um novo cabeçalho, truncando listas de perícia/proficiência no
+   meio. Corrigido: uma linha não é cabeçalho se a anterior termina em
+   vírgula OU numa conjunção solta (`and`, `of`, `the`, ...) — cobre tanto
+   "Nature, and" quanto "Sleight of" quebrando antes de "Hand".
+3. **Rótulo de stat-block sozinho** ("Hit Points" como cabeçalho de seção
+   de classe, valor na linha seguinte) era excluído pelo denylist que existe
+   pra não confundir "Hit Points 7 (2d6)" de monstro com cabeçalho — o
+   denylist agora só bloqueia quando o valor está na MESMA linha
+   (`startsWith('Hit Points ')`), não a palavra sozinha.
+
+Sem essas correções, **Half-Elf e Half-Orc estavam totalmente ausentes** do
+índice (não apareciam nem no chat de regras), e as listas de perícia de
+praticamente toda classe vinham cortadas.
+
 ## Retrieval (online)
 
 ```

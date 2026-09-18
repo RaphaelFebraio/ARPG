@@ -7,3 +7,5 @@ export * from './schemas/rules.schema.js';
 export * from './schemas/campaign.schema.js';
 
 export * from './types/api.js';
+
+export * from './data/index.js';

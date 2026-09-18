@@ -60,7 +60,7 @@ Redis, espera o Postgres ficar saudável e então sobe o servidor com
 - [x] Fase 1 — Fundação (monorepo, Docker, Fastify + health check, shared, Drizzle schema)
 - [x] Fase 2 — RAG Pipeline (ver [docs/RAG-PIPELINE.md](RAG-PIPELINE.md))
 - [x] Fase 3 — App Mobile (shell)
-- [ ] Fase 4 — Criação de Personagem
+- [x] Fase 4 — Criação de Personagem
 - [ ] Fase 5 — Chat de Regras
 - [ ] Fase 6 — Diário de Campanha
 - [ ] Fase 7 — Polish
@@ -78,6 +78,46 @@ SDK 57 recomenda (`19.2.3`) mas dentro do range aceito pelo `react-native`
 (`^19.2.3`). Deixar o npm resolver tudo pra `19.3.0` evita uma cópia
 duplicada real no bundle (que o `expo-doctor` trata como erro de build),
 trocando isso por um aviso de compatibilidade inofensivo.
+
+## Criação de personagem (Fase 4)
+
+Wizard de 10 passos em `apps/mobile/app/(tabs)/create/` (raça → sub-raça* →
+classe → antecedente → atributos → perícias → equipamento → magias* →
+detalhes → resumo; \* pulado quando não se aplica), com estado em
+`stores/useCharacterCreationStore.ts` (Zustand) e validação em
+`utils/characterCreation.ts` (point buy, standard array, rolagem, HP, CA).
+
+Dados estáticos do SRD (`packages/shared/src/data/`) foram transcritos
+direto dos chunks reais já ingeridos no Postgres (Fase 2), não de memória —
+inclusive uma descoberta relevante: **o SRD 5.1 (Creative Commons) só
+publica 1 antecedente completo (Acolyte) e 1 sub-raça por raça** (sem
+Mountain Dwarf, Wood Elf, Stout Halfling, Forest Gnome); o resto é exclusivo
+do Livro do Jogador pago e foi deliberadamente deixado de fora.
+
+CRUD em `server/src/routes/character.ts` — sem autenticação real ainda
+(Fase 7), usa um "dev user" único (`server/src/services/dev-user.service.ts`)
+até a autenticação de verdade existir.
+
+### Duas armadilhas reais encontradas testando de ponta a ponta
+
+1. **Metro não resolve import `.js` apontando pra `.ts`.** O server (tsx/Node
+   ESM) exige que imports relativos do `shared` terminem em `.js` mesmo
+   quando o arquivo real é `.ts`; o Metro (bundler do Expo) não tem essa
+   regra e falha ao resolver esses mesmos imports. `apps/mobile/metro.config.js`
+   tem um `resolveRequest` customizado que cai pra `.ts`/`.tsx` quando o
+   `.js` literal não existe — sem isso, o app mobile não builda.
+2. **Selector do Zustand que retorna objeto novo a cada chamada trava em
+   loop infinito.** `useCharacterCreationStore((s) => s.getFinalAbilityScores())`
+   causava "Maximum update depth exceeded" na tela de resumo: o hook do
+   Zustand usa `useSyncExternalStore`, que rechama o selector a cada render
+   pra checar consistência — um selector sem saída estável vira um loop
+   "snapshot mudou → re-render → novo snapshot" sem fim. A correção foi
+   selecionar os campos primitivos estáveis (`baseAbilityScores`,
+   `chosenBonusAbilities`) e derivar o valor localmente com `useMemo`. Ver o
+   aviso extenso em `stores/useCharacterCreationStore.ts`.
+
+Também corrigidos três bugs no chunker do RAG (Fase 2) descobertos ao
+extrair esses dados — ver [docs/RAG-PIPELINE.md](RAG-PIPELINE.md).
 
 ## Migração futura para VPS
 
